@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
-import logging
+""" Simple script, which connects to Mattermost using a Websocket, to notice
+@-mentions and pop up persistent Gnome Notifications.
+
+Requires https://github.com/Vaelor/python-mattermost-driver
+"""
+
 import json
+import logging
 import asyncio
 from mattermostdriver import Driver
-from mattermostdriver.exceptions import (
-    InvalidOrMissingParameters, NoAccessTokenProvided, NotEnoughPermissions,
-    FeatureDisabled, ContentTooLarge, ResourceNotFound)
 
 import gi
 gi.require_version('Notify', '0.7')
@@ -41,16 +44,11 @@ class MattermostBackend():
 
         # Get password from Gnome keyring, matching the stored Chromium password
         self._password = Secret.password_lookup_sync(
-            SECRET_SCHEMA, {'username_value': self._login, 'action_url': 'https://mattermost.example.com/login'}, None
+            SECRET_SCHEMA,
+            {'username_value': self._login,
+             'action_url': 'https://mattermost.example.com/login'},
+            None
         )
-
-    def username_to_userid(self, name):
-        """Converts a name prefixed with @ to the userid"""
-        name = name.lstrip('@')
-        user = self.driver.api['users'].get_user_by_username(username=name)
-        if user is None:
-            raise Exception('Cannot find user {}'.format(name))
-        return user['id']
 
     @asyncio.coroutine
     def mattermost_event_handler(self, payload):
@@ -105,17 +103,12 @@ class MattermostBackend():
             teamname = None
 
         text = ''
-        post_id = ''
-        file_ids = None
         userid = None
 
         if 'post' in data:
             post = json.loads(data['post'])
             text = post['message']
             userid = post['user_id']
-            if 'file_ids' in post:
-                file_ids = post['file_ids']
-            post_id = post['id']
             if 'type' in post and post['type'] == 'system_add_remove':
                 log.info('Ignoring message from System')
                 return
@@ -137,7 +130,7 @@ class MattermostBackend():
             if teamname:
                 self.notify('{} in {}/{}'.format(username, teamname, channel), text)
             else:
-                self.notify('{} in DM'.format(username, teamname, channel), text)
+                self.notify('{} in DM'.format(username), text)
             log.info('"posted" event from {}: {}'.format(
                 self.driver.api['users'].get_user(user_id=userid)['username'],
                 text
