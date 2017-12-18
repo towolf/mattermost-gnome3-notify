@@ -96,8 +96,9 @@ class MattermostBackend():
             channel = data['channel_name']
             if 'team_id' in data:
                 teamid = data['team_id']
-                team = self.driver.api['teams'].get_team(team_id=teamid)
-                teamname = team['display_name']
+                if teamid:
+                    team = self.driver.api['teams'].get_team(team_id=teamid)
+                    teamname = team['display_name']
         else:
             channel = channelid
             teamname = None
@@ -172,10 +173,11 @@ class MattermostBackend():
 
 class Notification:
     def __init__(self, summary, body):
-        if Notify.is_initted() or Notify.init('Mattermost Notification'):
+        if Notify.is_initted() or Notify.init('Mattermost'):
             self.notification = Notify.Notification.new(summary, body, 'user-available')
+            self.notification.set_hint('desktop-entry', GLib.Variant('s', 'mattermost'))
+            self.notification.set_hint('category', GLib.Variant('s', 'im.received'))
             self.notification.set_category('im.received')
-            self.notification.set_hint('desktop-entry', GLib.Variant('s', 'chromium-browser'))
             self.notification.show()
         else:
             raise Exception('Not Supported')
