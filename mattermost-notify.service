@@ -1,0 +1,10 @@
+[Unit]
+Description=Mattermost Gnome3 notifications
+ConditionPathExists=/run/user/1000/keyring/control
+
+[Service]
+ExecStart=/usr/bin/env mattermost-notify.py
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
