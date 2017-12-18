@@ -128,10 +128,12 @@ class MattermostBackend():
         if mentions:
             username = self.driver.api['users'].get_user(user_id=userid)['username']
 
-            if teamname:
-                self.notify('{} in {}/{}'.format(username, teamname, channel), text)
-            else:
-                self.notify('{} in DM'.format(username), text)
+            print('mentioned: ', teamname, '"', mentions, '"', username, text)
+            if self.userid in mentions:
+                if teamname:
+                    self.notify('{} in {}/{}'.format(username, teamname, channel), text)
+                else:
+                    self.notify('{} in DM'.format(username), text)
             log.info('"posted" event from {}: {}'.format(
                 self.driver.api['users'].get_user(user_id=userid)['username'],
                 text
