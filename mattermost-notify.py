@@ -5,6 +5,7 @@
 Requires https://github.com/Vaelor/python-mattermost-driver
 """
 
+import sys
 import json
 import logging
 import asyncio
@@ -74,7 +75,8 @@ class MattermostBackend():
         try:
             event_handler(payload)
         except Exception:
-            log.exception('{} event handler raised an exception'.format(event))
+            log.exception('{} event handler raised an exception. Exiting.'.format(event))
+            sys.exit(1)
 
     def _message_event_handler(self, message):
         log.debug(message)
